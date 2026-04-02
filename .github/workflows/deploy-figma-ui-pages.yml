@@ -1,0 +1,46 @@
+# 构建 figma-ui 并发布到 GitHub Pages（仓库 Settings → Pages → Source: GitHub Actions）
+name: Deploy static site (figma-ui)
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install & build
+        working-directory: figma-ui
+        env:
+          # 普通仓库：/<仓库名>/ ；用户主页仓库 <user>.github.io 时用 /
+          VITE_BASE_URL: ${{ github.event.repository.name == format('{0}.github.io', github.event.repository.owner.login) && '/' || format('/{0}/', github.event.repository.name) }}
+        run: |
+          npm install
+          npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: figma-ui/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment
