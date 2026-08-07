@@ -20,7 +20,7 @@ import LogoPage from "./pages/LogoPage";
 
 import { Home } from "./pages/Home";
 
-/** Hash 路由：部署到 GitHub Pages 子路径时无需服务端 fallback，刷新仍可用 */
+/** Hash 路由：无需服务端 fallback；ESA Pages 已配置 SPA fallback，后续也可改 BrowserRouter */
 export const router = createHashRouter([
   {
     path: "/",

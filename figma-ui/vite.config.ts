@@ -1,23 +1,13 @@
 import { defineConfig } from 'vite'
 import path from 'path'
-import { writeFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-/** GitHub Actions 中设置 VITE_BASE_URL=/<仓库名>/ ；本地与相对路径预览用 ./ */
-const base = process.env.VITE_BASE_URL ?? './'
-
-function nojekyllPlugin() {
-  return {
-    name: 'emit-nojekyll',
-    closeBundle() {
-      writeFileSync(path.resolve(__dirname, 'dist/.nojekyll'), '')
-    },
-  }
-}
+/** ESA Pages / 自定义域名用 / ；若仍部署 GitHub Pages 子路径可设 VITE_BASE_URL=/<仓库名>/ */
+const base = process.env.VITE_BASE_URL ?? '/'
 
 export default defineConfig({
   base,
@@ -26,7 +16,6 @@ export default defineConfig({
     // Tailwind is not being actively used – do not remove them
     react(),
     tailwindcss(),
-    nojekyllPlugin(),
   ],
   resolve: {
     alias: {
