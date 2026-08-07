@@ -9,7 +9,7 @@ export function CTA() {
   return (
     <section id="cta" className="py-32 bg-slate-50 relative overflow-hidden text-center">
       {/* Background Decor */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-full max-h-[400px] bg-gradient-to-tr from-blue-100 to-indigo-50 rounded-[4rem] blur-3xl opacity-60 -z-10" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-full max-h-[400px] bg-gradient-to-tr from-[#E8F0FE] to-sky-50 rounded-[4rem] blur-3xl opacity-70 -z-10" />
       
       <div className="container mx-auto px-6 max-w-4xl relative z-10">
         <motion.div
@@ -20,7 +20,7 @@ export function CTA() {
         >
           <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight tracking-tight">
             让医疗资料真正变得<br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+            <span className="text-[#2D6EF7]">
               可管理、可理解、可分享
             </span>
           </h2>
@@ -34,7 +34,7 @@ export function CTA() {
             <Button
               type="button"
               size="lg"
-              className="h-14 px-10 text-lg gap-2 group shadow-xl shadow-blue-600/20"
+              className="h-14 px-10 text-lg gap-2 group bg-[#2D6EF7] hover:bg-[#255ED9] shadow-xl shadow-[#2D6EF7]/25"
               onClick={showLaunchNotice}
             >
               立即免费体验

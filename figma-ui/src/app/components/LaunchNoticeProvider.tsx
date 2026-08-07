@@ -28,7 +28,7 @@ export function LaunchNoticeProvider({ children }: { children: React.ReactNode }
           <AlertDialogHeader>
             <AlertDialogTitle className="text-slate-900">敬请期待</AlertDialogTitle>
             <AlertDialogDescription className="text-base text-slate-600">
-              服务即将在 4 月上线，敬请期待。
+              免费内测即将开始，请关注我们，获取免费的会员资格。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
