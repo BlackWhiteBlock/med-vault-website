@@ -213,7 +213,17 @@ export function Layout() {
           </div>
         </div>
         <div className="container mx-auto px-6 max-w-6xl mt-16 pt-8 border-t border-slate-800 text-sm flex flex-col md:flex-row items-center justify-between gap-4">
-          <p>© 2026 医案通 (Yi An Tong). All rights reserved.</p>
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-slate-500">
+            <p className="text-slate-400">© 2026 医案通 (Yi An Tong). All rights reserved.</p>
+            <a
+              href="https://beian.miit.gov.cn/"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="hover:text-slate-300 transition-colors"
+            >
+              苏ICP备19061575号-5
+            </a>
+          </div>
           <div className="flex items-center gap-4 text-slate-500">
             <span>让每个人都拥有一份完整的个人医疗档案</span>
           </div>
