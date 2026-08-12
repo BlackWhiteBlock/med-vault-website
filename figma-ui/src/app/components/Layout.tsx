@@ -8,7 +8,7 @@ import { useLaunchNotice } from "./LaunchNoticeProvider";
 import { useHomeSectionNav } from "../hooks/useHomeSectionNav";
 
 export function Layout() {
-  const { showLaunchNotice } = useLaunchNotice();
+  const { showLaunchNotice, showPartnerNotice } = useLaunchNotice();
   const { goToHomeSection } = useHomeSectionNav();
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
@@ -67,9 +67,9 @@ export function Layout() {
               type="button"
               variant="ghost"
               className="hidden lg:inline-flex"
-              onClick={showLaunchNotice}
+              onClick={showPartnerNotice}
             >
-              了解更多
+              合作咨询
             </Button>
             <Button type="button" onClick={showLaunchNotice}>
               立即体验
@@ -118,10 +118,10 @@ export function Layout() {
                   className="w-full justify-center"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    showLaunchNotice();
+                    showPartnerNotice();
                   }}
                 >
-                  了解更多
+                  合作咨询
                 </Button>
                 <Button
                   type="button"
@@ -222,6 +222,22 @@ export function Layout() {
               className="hover:text-slate-300 transition-colors"
             >
               苏ICP备19061575号-5
+            </a>
+            <a
+              href="https://beian.mps.gov.cn/#/query/webSearch?code=32010602012550"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="inline-flex items-center gap-1.5 hover:text-slate-300 transition-colors"
+            >
+              <svg
+                viewBox="0 0 20 20"
+                className="h-3.5 w-3.5 shrink-0 fill-current opacity-80"
+                aria-hidden="true"
+              >
+                <path d="M10 0L1.5 3.5v5.2c0 5.3 3.6 10.2 8.5 11.3 4.9-1.1 8.5-6 8.5-11.3V3.5L10 0zm0 2.2 6.5 2.7v3.8c0 4.1-2.7 7.9-6.5 8.9-3.8-1-6.5-4.8-6.5-8.9V4.9L10 2.2z" />
+                <path d="M9.2 11.8 6.6 9.2l1.1-1.1 1.5 1.5 3.4-3.4 1.1 1.1-4.5 4.5z" />
+              </svg>
+              苏公网安备32010602012550号
             </a>
           </div>
           <div className="flex items-center gap-4 text-slate-500">

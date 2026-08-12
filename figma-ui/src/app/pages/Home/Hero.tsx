@@ -5,7 +5,7 @@ import { ArrowRight, Sparkles, Activity, FileText } from "lucide-react";
 import { useLaunchNotice } from "../../components/LaunchNoticeProvider";
 
 export function Hero() {
-  const { showLaunchNotice } = useLaunchNotice();
+  const { showLaunchNotice, showPartnerNotice } = useLaunchNotice();
   return (
     <section className="relative pt-32 pb-28 overflow-hidden bg-gradient-to-b from-[#EEF4FF] via-slate-50 to-slate-50">
       <div className="container mx-auto px-6 max-w-6xl relative z-10">
@@ -46,9 +46,9 @@ export function Hero() {
                 size="lg"
                 variant="outline"
                 className="border-slate-200 text-slate-600 hover:text-slate-900 bg-white shadow-sm"
-                onClick={showLaunchNotice}
+                onClick={showPartnerNotice}
               >
-                了解更多
+                合作咨询
               </Button>
             </div>
 
