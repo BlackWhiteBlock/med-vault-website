@@ -204,9 +204,9 @@ export function Layout() {
                 <button
                   type="button"
                   className="cursor-pointer border-0 bg-transparent p-0 hover:text-blue-400 transition-colors"
-                  onClick={() => goToHomeSection("cta")}
+                  onClick={showPartnerNotice}
                 >
-                  联系我们
+                  合作咨询
                 </button>
               </li>
             </ul>

@@ -2,10 +2,10 @@ import React from "react";
 import { motion } from "motion/react";
 import { Button } from "../../components/ui/button";
 import { useLaunchNotice } from "../../components/LaunchNoticeProvider";
-import { ArrowRight, Phone } from "lucide-react";
+import { ArrowRight, Handshake } from "lucide-react";
 
 export function CTA() {
-  const { showLaunchNotice } = useLaunchNotice();
+  const { showLaunchNotice, showPartnerNotice } = useLaunchNotice();
   return (
     <section id="cta" className="py-32 bg-slate-50 relative overflow-hidden text-center">
       {/* Background Decor */}
@@ -40,8 +40,14 @@ export function CTA() {
               立即免费体验
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button size="lg" variant="outline" className="h-14 px-10 text-lg border-slate-200 text-slate-600 hover:text-slate-900 bg-white shadow-sm gap-2">
-              <Phone className="w-5 h-5" /> 联系我们
+            <Button
+              type="button"
+              size="lg"
+              variant="outline"
+              className="h-14 px-10 text-lg border-slate-200 text-slate-600 hover:text-slate-900 bg-white shadow-sm gap-2"
+              onClick={showPartnerNotice}
+            >
+              <Handshake className="w-5 h-5" /> 合作咨询
             </Button>
           </div>
         </motion.div>
