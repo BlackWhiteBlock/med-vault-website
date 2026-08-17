@@ -3,11 +3,11 @@ schema_version: 1
 locale: zh-CN
 branch: main
 nodes_managed: true
-exported_at: "2026-08-17T02:46:26Z"
+exported_at: "2026-08-17T04:18:13Z"
 modules:
     "":
-        dir_name: 仓库忽略规则与 Figma UI 静态站点部署工作流
-        title: 仓库忽略规则与 Figma UI 静态站点部署工作流
+        dir_name: Git 忽略规则与 Figma UI 静态站点部署工作流
+        title: Git 忽略规则与 Figma UI 静态站点部署工作流
         scope:
             - .gitignore
             - .github/workflows/deploy-figma-ui-pages.yml

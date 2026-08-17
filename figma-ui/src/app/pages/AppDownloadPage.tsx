@@ -2,10 +2,6 @@ import React, { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { AppIconSvg } from "./LogoPage";
 
-/** 兜底下载链接：仅在版本检查接口异常时回退使用 */
-const FALLBACK_APK_URL =
-  "https://download.med-vault.cloud/public/app-packages/android/7faf3715-0c16-44df-ae9b-53c9b41a976f.apk";
-
 /**
  * 版本检查接口：优先走同域 /api（ESA 边缘函数 edge/index.js 代理，规避 CORS），
  * 失败时再尝试直连 api.med-vault.cloud（若服务端已放行 CORS）。
@@ -14,6 +10,9 @@ const VERSION_CHECK_ENDPOINTS = [
   "/api/v1/app/version-check?platform=android",
   "https://api.med-vault.cloud/api/v1/app/version-check?platform=android",
 ];
+
+/** 单个端点的请求超时时间（毫秒），避免按钮长时间卡在加载态 */
+const FETCH_TIMEOUT_MS = 6000;
 
 interface AndroidVersionInfo {
   latest_version: string;
@@ -26,8 +25,14 @@ interface AndroidVersionInfo {
 
 async function fetchLatestAndroidVersion(): Promise<AndroidVersionInfo | null> {
   for (const endpoint of VERSION_CHECK_ENDPOINTS) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     try {
-      const res = await fetch(endpoint, { method: "GET", headers: { accept: "application/json" } });
+      const res = await fetch(endpoint, {
+        method: "GET",
+        headers: { accept: "application/json" },
+        signal: controller.signal,
+      });
       if (!res.ok) continue;
       const payload = await res.json();
       // 统一信封 { success, data, error, request_id }
@@ -36,6 +41,8 @@ async function fetchLatestAndroidVersion(): Promise<AndroidVersionInfo | null> {
       }
     } catch {
       // 继续尝试下一个端点
+    } finally {
+      clearTimeout(timer);
     }
   }
   return null;
@@ -182,26 +189,38 @@ function WechatGuideMask() {
 
 function useAndroidVersionInfo() {
   const [info, setInfo] = useState<AndroidVersionInfo | null>(null);
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
     let cancelled = false;
     fetchLatestAndroidVersion().then((v) => {
-      if (!cancelled) setInfo(v);
+      if (cancelled) return;
+      if (v) setInfo(v);
+      else setFailed(true);
     });
     return () => {
       cancelled = true;
     };
   }, []);
-  return info;
+  return { info, failed };
 }
 
-function DownloadButton({ versionInfo }: { versionInfo: AndroidVersionInfo | null }) {
+function DownloadButton({
+  versionInfo,
+  failed,
+}: {
+  versionInfo: AndroidVersionInfo | null;
+  failed: boolean;
+}) {
   const isMobile = useIsMobile();
   const [pressed, setPressed] = useState(false);
 
-  // 接口返回的 download_url 可能为空串（运营未填地址），此时回退到内置链接
-  const apkUrl = versionInfo?.download_url || FALLBACK_APK_URL;
+  // 无硬编码兜底：接口异常或 download_url 为空串时禁用按钮
+  const apkUrl = versionInfo?.download_url?.trim() || "";
+  const loading = !versionInfo && !failed;
+  const unavailable = !loading && !apkUrl;
 
   const handleClick = () => {
+    if (!apkUrl) return;
     setPressed(true);
     window.location.href = apkUrl;
     setTimeout(() => setPressed(false), 2500);
@@ -211,20 +230,27 @@ function DownloadButton({ versionInfo }: { versionInfo: AndroidVersionInfo | nul
     <div className="w-full">
       <motion.button
         onClick={handleClick}
-        whileTap={{ scale: 0.97 }}
+        disabled={loading || unavailable}
+        whileTap={apkUrl ? { scale: 0.97 } : undefined}
         className="w-full relative overflow-hidden rounded-2xl py-4 px-6 flex items-center justify-center gap-3 font-bold text-lg text-white"
         style={{
           background: pressed
             ? "linear-gradient(135deg,#059669,#10B981)"
-            : "linear-gradient(135deg,#1D4ED8,#3B82F6)",
+            : unavailable
+              ? "rgba(255,255,255,0.12)"
+              : "linear-gradient(135deg,#1D4ED8,#3B82F6)",
           boxShadow: pressed
             ? "0 8px 32px rgba(16,185,129,0.35)"
-            : "0 8px 32px rgba(37,99,235,0.4)",
-          transition: "background 0.4s, box-shadow 0.4s",
+            : unavailable
+              ? "none"
+              : "0 8px 32px rgba(37,99,235,0.4)",
+          opacity: loading ? 0.7 : 1,
+          cursor: apkUrl ? "pointer" : "default",
+          transition: "background 0.4s, box-shadow 0.4s, opacity 0.4s",
         }}
       >
         {/* Shimmer */}
-        {!pressed && (
+        {!pressed && !unavailable && (
           <motion.div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -242,6 +268,10 @@ function DownloadButton({ versionInfo }: { versionInfo: AndroidVersionInfo | nul
             </svg>
             下载已开始
           </>
+        ) : unavailable ? (
+          "下载暂不可用"
+        ) : loading ? (
+          "正在获取下载链接…"
         ) : (
           <>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -253,6 +283,13 @@ function DownloadButton({ versionInfo }: { versionInfo: AndroidVersionInfo | nul
           </>
         )}
       </motion.button>
+
+      {/* 接口异常 / 未配置下载地址时的提示 */}
+      {unavailable && (
+        <p className="text-center text-xs mt-2.5" style={{ color: "#FCA5A5" }}>
+          获取下载链接失败，请稍后刷新页面重试
+        </p>
+      )}
 
       {!isMobile && (
         <p className="text-center text-xs mt-2.5" style={{ color: "rgba(255,255,255,0.4)" }}>
@@ -306,7 +343,7 @@ function ReleaseNotes({ versionInfo }: { versionInfo: AndroidVersionInfo | null 
 }
 
 export default function AppDownloadPage() {
-  const versionInfo = useAndroidVersionInfo();
+  const { info: versionInfo, failed: versionFailed } = useAndroidVersionInfo();
 
   return (
     <div
@@ -458,7 +495,7 @@ export default function AppDownloadPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.38, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         >
-          <DownloadButton versionInfo={versionInfo} />
+          <DownloadButton versionInfo={versionInfo} failed={versionFailed} />
         </motion.div>
 
         {/* ── Release notes ── */}
