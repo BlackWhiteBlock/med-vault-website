@@ -97,6 +97,89 @@ function useIsMobile() {
   return mobile;
 }
 
+function useIsWechat() {
+  const [isWechat, setIsWechat] = useState(false);
+  useEffect(() => {
+    // 微信内置浏览器 UA 包含 MicroMessenger（企业微信为 WXWork，同样拦截）
+    setIsWechat(/micromessenger|wxwork/i.test(navigator.userAgent));
+  }, []);
+  return isWechat;
+}
+
+/** 微信内置浏览器会拦截 APK 下载，用全屏遮罩引导用户「右上角 ··· → 在浏览器打开」 */
+function WechatGuideMask() {
+  const isWechat = useIsWechat();
+  if (!isWechat) return null;
+
+  const steps = [
+    "点击右上角的 ··· 菜单",
+    "选择「在浏览器打开」",
+    "回到页面后点击「立即下载」即可安装",
+  ];
+
+  return (
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 9999,
+        background: "rgba(4,9,26,0.85)", backdropFilter: "blur(4px)",
+        display: "flex", flexDirection: "column",
+        padding: "18px 22px 32px",
+      }}
+    >
+      {/* 右上角指引：浮动箭头 + 文案 */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+        <motion.svg
+          width="52" height="52" viewBox="0 0 24 24" fill="none"
+          stroke="#FCD34D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          animate={{ y: [0, -8, 0] }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <path d="M7 17L17 7" />
+          <path d="M9 7h8v8" />
+        </motion.svg>
+        <p style={{ color: "#fff", fontSize: 19, fontWeight: 800, margin: 0, textAlign: "right" }}>
+          点击右上角 <span style={{ color: "#FCD34D", fontSize: 24, letterSpacing: "0.05em" }}>···</span>
+        </p>
+        <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 15, fontWeight: 600, margin: 0, textAlign: "right" }}>
+          选择「在浏览器打开」
+        </p>
+      </div>
+
+      {/* 步骤说明卡片 */}
+      <div style={{ marginTop: 40, display: "flex", flexDirection: "column", gap: 12 }}>
+        {steps.map((text, i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex", alignItems: "center", gap: 12,
+              background: "rgba(255,255,255,0.07)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: 14, padding: "12px 14px",
+            }}
+          >
+            <div style={{
+              width: 24, height: 24, borderRadius: "50%", flexShrink: 0,
+              background: "linear-gradient(135deg,#1D4ED8,#3B82F6)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#fff", fontSize: 13, fontWeight: 800,
+            }}>
+              {i + 1}
+            </div>
+            <span style={{ color: "rgba(255,255,255,0.85)", fontSize: 14, fontWeight: 600, lineHeight: 1.4 }}>
+              {text}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* 底部提示 */}
+      <p style={{ marginTop: "auto", textAlign: "center", color: "rgba(255,255,255,0.35)", fontSize: 12, lineHeight: 1.7 }}>
+        微信内无法直接下载安装包<br />请使用系统浏览器打开本页面
+      </p>
+    </div>
+  );
+}
+
 function useAndroidVersionInfo() {
   const [info, setInfo] = useState<AndroidVersionInfo | null>(null);
   useEffect(() => {
@@ -233,6 +316,9 @@ export default function AppDownloadPage() {
         fontFamily: "'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif",
       }}
     >
+      {/* 微信内置浏览器拦截提示遮罩 */}
+      <WechatGuideMask />
+
       {/* Background decorations */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div style={{
