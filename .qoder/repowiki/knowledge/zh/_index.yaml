@@ -1,0 +1,17 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: zh-CN
+branch: main
+nodes_managed: true
+exported_at: "2026-08-17T02:46:26Z"
+modules:
+    "":
+        dir_name: 仓库忽略规则与 Figma UI 静态站点部署工作流
+        title: 仓库忽略规则与 Figma UI 静态站点部署工作流
+        scope:
+            - .gitignore
+            - .github/workflows/deploy-figma-ui-pages.yml
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []

@@ -2,6 +2,8 @@
   // med-vault 官网 → 阿里云 ESA Pages
   // 控制台导入仓库时，请将「根目录」设为 /figma-ui
   "name": "med-vault-website",
+  // 边缘函数入口：代理 /api/v1/app/version-check 到 api.med-vault.cloud（见 edge/index.js）
+  "entry": "./edge/index.js",
   "installCommand": "npm install",
   "buildCommand": "npm run build",
   "assets": {

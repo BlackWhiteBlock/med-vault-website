@@ -17,6 +17,16 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    proxy: {
+      // 本地开发时模拟 ESA 边缘函数（edge/index.js）的同源代理行为
+      '/api': {
+        target: 'https://api.med-vault.cloud',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
   resolve: {
     alias: {
       // Alias @ to the src directory

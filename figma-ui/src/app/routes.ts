@@ -17,6 +17,7 @@ import MetricHistoryPage from "./pages/MetricHistoryPage";
 import DocumentViewerPage from "./pages/DocumentViewerPage";
 import PromoPage from "./pages/PromoPage";
 import LogoPage from "./pages/LogoPage";
+import AppDownloadPage from "./pages/AppDownloadPage";
 
 import { Home } from "./pages/Home";
 
@@ -92,6 +93,11 @@ export const router = createHashRouter([
   {
     path: "/logo",
     Component: LogoPage,
+  },
+  {
+    // App 下载落地页：暂无站内入口，直接通过 URL（/#/download）访问
+    path: "/download",
+    Component: AppDownloadPage,
   },
   {
     path: "/login",
