@@ -14,6 +14,9 @@ const VERSION_CHECK_ENDPOINTS = [
 /** 单个端点的请求超时时间（毫秒），避免按钮长时间卡在加载态 */
 const FETCH_TIMEOUT_MS = 6000;
 
+/** 下载事件上报接口（同域，经 ESA 边缘函数 / vite dev 代理转发，规避 CORS） */
+const DOWNLOAD_EVENT_PATH = "/api/v1/app/download-events";
+
 interface AndroidVersionInfo {
   latest_version: string;
   download_url: string;
@@ -46,6 +49,31 @@ async function fetchLatestAndroidVersion(): Promise<AndroidVersionInfo | null> {
     }
   }
   return null;
+}
+
+/**
+ * 下载点击上报：fire-and-forget，失败静默忽略，绝不阻塞下载主流程。
+ * 口径以「点击/触发下载」为准（浏览器无法可靠感知下载完成）。
+ */
+function reportAppDownload(version?: string) {
+  const body = JSON.stringify({
+    platform: "android",
+    version: (version || "").slice(0, 64), // 后端限制最长 64 字符，防御性截断
+  });
+  try {
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(DOWNLOAD_EVENT_PATH, new Blob([body], { type: "application/json" }));
+    } else {
+      fetch(DOWNLOAD_EVENT_PATH, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        keepalive: true,
+      }).catch(() => {});
+    }
+  } catch {
+    // 静默
+  }
 }
 
 const FEATURES = [
@@ -221,6 +249,8 @@ function DownloadButton({
 
   const handleClick = () => {
     if (!apkUrl) return;
+    // 下载真正发起时上报一次（先上报再跳转，sendBeacon 不受页面离开影响）
+    reportAppDownload(versionInfo?.latest_version);
     setPressed(true);
     window.location.href = apkUrl;
     setTimeout(() => setPressed(false), 2500);
