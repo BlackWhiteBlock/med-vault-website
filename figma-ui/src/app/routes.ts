@@ -95,7 +95,7 @@ export const router = createHashRouter([
     Component: LogoPage,
   },
   {
-    // App 下载落地页：暂无站内入口，直接通过 URL（/#/download）访问
+    // App 下载落地页：官网「立即体验」入口
     path: "/download",
     Component: AppDownloadPage,
   },

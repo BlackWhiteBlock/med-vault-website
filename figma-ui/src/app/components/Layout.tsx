@@ -8,7 +8,7 @@ import { useLaunchNotice } from "./LaunchNoticeProvider";
 import { useHomeSectionNav } from "../hooks/useHomeSectionNav";
 
 export function Layout() {
-  const { showLaunchNotice, showPartnerNotice } = useLaunchNotice();
+  const { showPartnerNotice } = useLaunchNotice();
   const { goToHomeSection } = useHomeSectionNav();
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
@@ -71,8 +71,8 @@ export function Layout() {
             >
               合作咨询
             </Button>
-            <Button type="button" onClick={showLaunchNotice}>
-              立即体验
+            <Button asChild>
+              <Link to="/download">立即体验</Link>
             </Button>
           </div>
 
@@ -123,15 +123,10 @@ export function Layout() {
                 >
                   合作咨询
                 </Button>
-                <Button
-                  type="button"
-                  className="w-full justify-center"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    showLaunchNotice();
-                  }}
-                >
-                  立即体验
+                <Button asChild className="w-full justify-center">
+                  <Link to="/download" onClick={() => setIsMobileMenuOpen(false)}>
+                    立即体验
+                  </Link>
                 </Button>
               </div>
             </motion.div>

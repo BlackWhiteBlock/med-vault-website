@@ -1,11 +1,12 @@
 import React from "react";
 import { motion } from "motion/react";
+import { Link } from "react-router";
 import { Button } from "../../components/ui/button";
 import { ArrowRight, Sparkles, Activity, FileText } from "lucide-react";
 import { useLaunchNotice } from "../../components/LaunchNoticeProvider";
 
 export function Hero() {
-  const { showLaunchNotice, showPartnerNotice } = useLaunchNotice();
+  const { showPartnerNotice } = useLaunchNotice();
   return (
     <section className="relative pt-32 pb-28 overflow-hidden bg-gradient-to-b from-[#EEF4FF] via-slate-50 to-slate-50">
       <div className="container mx-auto px-6 max-w-6xl relative z-10">
@@ -33,13 +34,14 @@ export function Hero() {
 
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Button
-                type="button"
+                asChild
                 size="lg"
                 className="gap-2 group bg-[#2D6EF7] hover:bg-[#255ED9] shadow-xl shadow-[#2D6EF7]/25"
-                onClick={showLaunchNotice}
               >
-                立即体验
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <Link to="/download">
+                  立即体验
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
               </Button>
               <Button
                 type="button"

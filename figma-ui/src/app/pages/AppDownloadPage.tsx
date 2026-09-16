@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router";
 import { motion } from "motion/react";
 import { AppIconSvg } from "./LogoPage";
+import { useLaunchNotice } from "../components/LaunchNoticeProvider";
 
 /**
  * 版本检查接口：优先走同域 /api（ESA 边缘函数 edge/index.js 代理，规避 CORS），
@@ -123,13 +125,25 @@ const FEATURES = [
   },
 ];
 
-function useIsMobile() {
-  const [mobile, setMobile] = useState(false);
+type ClientPlatform = "android" | "ios" | "desktop";
+
+function detectPlatform(ua: string): ClientPlatform {
+  const value = ua.toLowerCase();
+  if (/iphone|ipad|ipod/.test(value)) return "ios";
+  // iPadOS 13+ 可能伪装成 Macintosh
+  if (/macintosh/.test(value) && typeof navigator !== "undefined" && navigator.maxTouchPoints > 1) {
+    return "ios";
+  }
+  if (/android/.test(value)) return "android";
+  return "desktop";
+}
+
+function useClientPlatform() {
+  const [platform, setPlatform] = useState<ClientPlatform>("desktop");
   useEffect(() => {
-    const ua = navigator.userAgent.toLowerCase();
-    setMobile(/android|iphone|ipad|ipod|mobile/.test(ua));
+    setPlatform(detectPlatform(navigator.userAgent));
   }, []);
-  return mobile;
+  return platform;
 }
 
 function useIsWechat() {
@@ -141,10 +155,15 @@ function useIsWechat() {
   return isWechat;
 }
 
-/** 微信内置浏览器会拦截 APK 下载，用全屏遮罩引导用户「右上角 ··· → 在浏览器打开」 */
-function WechatGuideMask() {
+function getDownloadPageUrl() {
+  if (typeof window === "undefined") return "https://med-vault.cloud/#/download";
+  return `${window.location.origin}${window.location.pathname}#/download`;
+}
+
+/** 微信内置浏览器会拦截 APK 下载，仅 Android 微信展示引导 */
+function WechatGuideMask({ platform }: { platform: ClientPlatform }) {
   const isWechat = useIsWechat();
-  if (!isWechat) return null;
+  if (!isWechat || platform !== "android") return null;
 
   const steps = [
     "点击右上角的 ··· 菜单",
@@ -239,7 +258,6 @@ function DownloadButton({
   versionInfo: AndroidVersionInfo | null;
   failed: boolean;
 }) {
-  const isMobile = useIsMobile();
   const [pressed, setPressed] = useState(false);
 
   // 无硬编码兜底：接口异常或 download_url 为空串时禁用按钮
@@ -321,12 +339,6 @@ function DownloadButton({
         </p>
       )}
 
-      {!isMobile && (
-        <p className="text-center text-xs mt-2.5" style={{ color: "rgba(255,255,255,0.4)" }}>
-          建议在手机浏览器中打开此页面以直接安装
-        </p>
-      )}
-
       {/* 最新版本号 */}
       {versionInfo?.latest_version && (
         <p className="text-center mt-2.5" style={{ color: "rgba(255,255,255,0.45)", fontSize: 12 }}>
@@ -341,6 +353,117 @@ function DownloadButton({
         </svg>
         <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 12 }}>仅支持 Android 手机安装</span>
       </div>
+    </div>
+  );
+}
+
+function SupportNotice() {
+  const { showLaunchNotice } = useLaunchNotice();
+  return (
+    <button
+      type="button"
+      onClick={showLaunchNotice}
+      className="w-full mt-3 text-center text-sm font-medium"
+      style={{ color: "rgba(255,255,255,0.55)", background: "none", border: 0, cursor: "pointer" }}
+    >
+      安装后可添加客服，领取体验资格
+    </button>
+  );
+}
+
+function DesktopQrCard() {
+  const pageUrl = useMemo(() => getDownloadPageUrl(), []);
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=10&data=${encodeURIComponent(pageUrl)}`;
+
+  return (
+    <div
+      style={{
+        background: "rgba(255,255,255,0.06)",
+        border: "1px solid rgba(255,255,255,0.12)",
+        borderRadius: 20,
+        padding: "22px 18px 18px",
+        textAlign: "center",
+      }}
+    >
+      <p style={{ color: "#fff", fontSize: 16, fontWeight: 800, margin: 0 }}>手机扫码下载</p>
+      <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, margin: "8px 0 16px", lineHeight: 1.5 }}>
+        请使用手机浏览器扫描，在手机上完成安装
+      </p>
+      <div
+        style={{
+          width: 176,
+          height: 176,
+          margin: "0 auto",
+          borderRadius: 16,
+          background: "#fff",
+          padding: 10,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
+        }}
+      >
+        <img src={qrSrc} alt="医案通下载页二维码" width={156} height={156} style={{ display: "block" }} />
+      </div>
+      <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, marginTop: 12, wordBreak: "break-all" }}>
+        {pageUrl}
+      </p>
+    </div>
+  );
+}
+
+function IosComingSoon() {
+  const { showLaunchNotice } = useLaunchNotice();
+  return (
+    <div
+      style={{
+        background: "rgba(255,255,255,0.06)",
+        border: "1px solid rgba(255,255,255,0.12)",
+        borderRadius: 20,
+        padding: "22px 18px",
+        textAlign: "center",
+      }}
+    >
+      <p style={{ color: "#fff", fontSize: 16, fontWeight: 800, margin: 0 }}>iOS 即将上架 App Store</p>
+      <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, margin: "10px 0 18px", lineHeight: 1.6 }}>
+        当前可先添加官方客服预约体验，上架后我们会第一时间通知你。
+      </p>
+      <button
+        type="button"
+        onClick={showLaunchNotice}
+        className="w-full rounded-2xl py-4 px-6 font-bold text-white"
+        style={{
+          background: "linear-gradient(135deg,#1D4ED8,#3B82F6)",
+          boxShadow: "0 8px 32px rgba(37,99,235,0.4)",
+          border: 0,
+          cursor: "pointer",
+        }}
+      >
+        添加客服预约 iOS
+      </button>
+    </div>
+  );
+}
+
+function DeviceAwareDownload({
+  platform,
+  versionInfo,
+  failed,
+}: {
+  platform: ClientPlatform;
+  versionInfo: AndroidVersionInfo | null;
+  failed: boolean;
+}) {
+  if (platform === "ios") return <IosComingSoon />;
+  if (platform === "desktop") {
+    return (
+      <div>
+        <DesktopQrCard />
+        <SupportNotice />
+      </div>
+    );
+  }
+  return (
+    <div>
+      <DownloadButton versionInfo={versionInfo} failed={failed} />
+      <SupportNotice />
     </div>
   );
 }
@@ -374,6 +497,7 @@ function ReleaseNotes({ versionInfo }: { versionInfo: AndroidVersionInfo | null 
 
 export default function AppDownloadPage() {
   const { info: versionInfo, failed: versionFailed } = useAndroidVersionInfo();
+  const platform = useClientPlatform();
 
   return (
     <div
@@ -383,8 +507,8 @@ export default function AppDownloadPage() {
         fontFamily: "'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif",
       }}
     >
-      {/* 微信内置浏览器拦截提示遮罩 */}
-      <WechatGuideMask />
+      {/* 微信内置浏览器拦截提示遮罩（仅 Android） */}
+      <WechatGuideMask platform={platform} />
 
       {/* Background decorations */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -415,7 +539,13 @@ export default function AppDownloadPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
-          {/* Beta badge */}
+          <Link
+            to="/"
+            style={{ color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 600, textDecoration: "none" }}
+          >
+            ← 返回官网
+          </Link>
+
           <div style={{
             display: "flex", alignItems: "center", gap: 7,
             background: "rgba(255,255,255,0.08)",
@@ -427,14 +557,8 @@ export default function AppDownloadPage() {
               background: "#4ADE80", boxShadow: "0 0 8px #4ADE80",
             }} />
             <span style={{ color: "#fff", fontSize: 12, fontWeight: 700, letterSpacing: "0.08em" }}>
-              内测招募中
+              现已上线
             </span>
-            <span style={{
-              background: "rgba(255,165,0,0.25)",
-              border: "1px solid rgba(255,165,0,0.4)",
-              borderRadius: 100, padding: "1px 8px",
-              color: "#FCD34D", fontSize: 10, fontWeight: 800, letterSpacing: "0.1em",
-            }}>BETA</span>
           </div>
 
           {/* App icon */}
@@ -467,9 +591,8 @@ export default function AppDownloadPage() {
           {/* Restriction pills */}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
             {[
-              { icon: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>, label: "限时内测" },
-              { icon: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>, label: "名额有限" },
-              { icon: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>, label: "仅限安卓" },
+              { icon: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, label: "官方下载" },
+              { icon: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>, label: platform === "ios" ? "iOS 即将上架" : "现支持 Android" },
             ].map(({ icon, label }) => (
               <div key={label} style={{
                 display: "flex", alignItems: "center", gap: 5,
@@ -525,11 +648,11 @@ export default function AppDownloadPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.38, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         >
-          <DownloadButton versionInfo={versionInfo} failed={versionFailed} />
+          <DeviceAwareDownload platform={platform} versionInfo={versionInfo} failed={versionFailed} />
         </motion.div>
 
         {/* ── Release notes ── */}
-        <ReleaseNotes versionInfo={versionInfo} />
+        {platform !== "ios" && <ReleaseNotes versionInfo={versionInfo} />}
 
         {/* ── Footer ── */}
         <motion.div
@@ -539,7 +662,7 @@ export default function AppDownloadPage() {
           style={{ textAlign: "center", paddingBottom: 16 }}
         >
           <p style={{ color: "rgba(255,255,255,0.2)", fontSize: 11, lineHeight: 1.7 }}>
-            内测版本仅供体验 · 数据加密存储<br />
+            官方安装通道 · 数据加密存储<br />
             © 2026 医案通 MedVault · All Rights Reserved
           </p>
         </motion.div>

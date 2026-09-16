@@ -1,11 +1,12 @@
 import React from "react";
 import { motion } from "motion/react";
+import { Link } from "react-router";
 import { Button } from "../../components/ui/button";
 import { useLaunchNotice } from "../../components/LaunchNoticeProvider";
 import { ArrowRight, Handshake } from "lucide-react";
 
 export function CTA() {
-  const { showLaunchNotice, showPartnerNotice } = useLaunchNotice();
+  const { showPartnerNotice } = useLaunchNotice();
   return (
     <section id="cta" className="py-32 bg-slate-50 relative overflow-hidden text-center">
       {/* Background Decor */}
@@ -32,13 +33,14 @@ export function CTA() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
             <Button
-              type="button"
+              asChild
               size="lg"
               className="h-14 px-10 text-lg gap-2 group bg-[#2D6EF7] hover:bg-[#255ED9] shadow-xl shadow-[#2D6EF7]/25"
-              onClick={showLaunchNotice}
             >
-              立即免费体验
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <Link to="/download">
+                立即体验
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </Button>
             <Button
               type="button"
